@@ -99,7 +99,7 @@ export function CustomizationStep({
             </Label>
             <Select
               value={formData.fontStyle}
-              onValueChange={(value) =>
+              onValueChange={(value: string) =>
                 onUpdate('fontStyle', value as 'classic' | 'modern' | 'romantic')
               }
             >

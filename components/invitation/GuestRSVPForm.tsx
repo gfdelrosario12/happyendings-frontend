@@ -173,7 +173,7 @@ export function GuestRSVPForm({
               <Label className="text-base font-medium">
                 Will you be able to celebrate with us?
               </Label>
-              <RadioGroup value={rsvpStatus} onValueChange={(value) => {
+              <RadioGroup value={rsvpStatus} onValueChange={(value: string) => {
                 setRsvpStatus(value as 'accepted' | 'declined' | 'maybe');
                 setError(null);
               }}>
