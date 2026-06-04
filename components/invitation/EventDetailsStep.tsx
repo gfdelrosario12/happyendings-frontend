@@ -3,9 +3,11 @@
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { InvitationFormData } from '@/lib/types/invitation';
+import { AlertCircle } from 'lucide-react';
 
 interface EventDetailsStepProps {
   formData: InvitationFormData;
@@ -40,9 +42,10 @@ export function EventDetailsStep({
       </div>
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 text-destructive text-sm">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <Card className="p-6 border-secondary/20">
@@ -149,7 +152,7 @@ export function EventDetailsStep({
           onClick={onNext}
           disabled={!isComplete}
           size="lg"
-          className="bg-accent hover:bg-accent/90 text-accent-foreground font-medium px-8"
+          className="font-medium px-8"
         >
           Continue to Customization
         </Button>

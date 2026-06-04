@@ -1,8 +1,12 @@
 import React from "react"
 import type { Metadata } from 'next'
-import { Playfair_Display } from 'next/font/google'
+import { Playfair_Display, Geist } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 // const geist = Geist({ subsets: ["latin"] });
 // const geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -37,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className={`${playfair.variable} font-sans antialiased`}>
         {children}
         <Analytics />

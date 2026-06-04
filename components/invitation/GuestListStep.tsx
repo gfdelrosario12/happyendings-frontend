@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,15 +22,16 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { InvitationFormData, Guest } from '@/lib/types/invitation';
 import { CSVParser } from '@/lib/utils/csvParser';
-import { X, Upload, Plus, Download } from 'lucide-react';
+import { X, Upload, Plus, Download, AlertCircle } from 'lucide-react';
 
 interface GuestListStepProps {
   formData: InvitationFormData;
   onAddGuest: (guest: Guest) => void;
   onRemoveGuest: (guestId: string) => void;
-  // onUpdateGuest: (guestId: string, guest: Partial<Guest>) => void;
+  onUpdateGuest: (guestId: string, guest: Partial<Guest>) => void;
   onAddGuestsFromCSV: (guests: Guest[]) => void;
   onNext: () => void;
   onPrevious: () => void;
@@ -40,7 +42,7 @@ export function GuestListStep({
   formData,
   onAddGuest,
   onRemoveGuest,
-  // onUpdateGuest,
+  onUpdateGuest,
   onAddGuestsFromCSV,
   onNext,
   onPrevious,
@@ -115,9 +117,10 @@ export function GuestListStep({
       </div>
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 text-destructive text-sm">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <Card className="p-6 border-secondary/20 space-y-6">
@@ -165,9 +168,10 @@ export function GuestListStep({
             </div>
 
             {csvError && (
-              <div className="bg-destructive/10 border border-destructive/30 rounded p-3 text-destructive text-sm">
-                {csvError}
-              </div>
+              <Alert variant="destructive" className="py-3">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{csvError}</AlertDescription>
+              </Alert>
             )}
           </div>
         </div>
@@ -244,7 +248,7 @@ export function GuestListStep({
 
             <Button
               onClick={handleAddManualGuest}
-              className="w-full sm:w-auto gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
+              className="w-full sm:w-auto gap-2"
             >
               <Plus className="w-4 h-4" />
               Add Guest
@@ -292,9 +296,9 @@ export function GuestListStep({
                     <TableCell className="text-sm">{guest.phone || '-'}</TableCell>
                     <TableCell className="text-sm">
                       {guest.group ? (
-                        <span className="inline-block px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
+                        <Badge variant="secondary" className="font-medium">
                           {guest.group}
-                        </span>
+                        </Badge>
                       ) : (
                         '-'
                       )}
@@ -354,7 +358,7 @@ export function GuestListStep({
           onClick={onNext}
           disabled={formData.guests.length === 0}
           size="lg"
-          className="bg-accent hover:bg-accent/90 text-accent-foreground font-medium px-8"
+          className="font-medium px-8"
         >
           Review & Publish
         </Button>

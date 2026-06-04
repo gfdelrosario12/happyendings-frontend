@@ -82,7 +82,7 @@ export function GuestRSVPForm({
     return (
       <Card className="p-8 border-secondary/20">
         <div className="text-center space-y-4">
-          <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
+          <CheckCircle2 className="w-12 h-12 text-primary mx-auto" />
           <h2 className="font-serif text-2xl font-bold text-foreground">
             Thank You!
           </h2>
@@ -177,7 +177,7 @@ export function GuestRSVPForm({
                 setRsvpStatus(value as 'accepted' | 'declined' | 'maybe');
                 setError(null);
               }}>
-                <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-accent/50 hover:bg-muted/50 transition-all cursor-pointer">
+                <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
                   <RadioGroupItem value="accepted" id="accepted" />
                   <Label
                     htmlFor="accepted"
@@ -187,7 +187,7 @@ export function GuestRSVPForm({
                   </Label>
                 </div>
 
-                <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-accent/50 hover:bg-muted/50 transition-all cursor-pointer">
+                <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
                   <RadioGroupItem value="declined" id="declined" />
                   <Label
                     htmlFor="declined"
@@ -197,7 +197,7 @@ export function GuestRSVPForm({
                   </Label>
                 </div>
 
-                <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-accent/50 hover:bg-muted/50 transition-all cursor-pointer">
+                <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
                   <RadioGroupItem value="maybe" id="maybe" />
                   <Label
                     htmlFor="maybe"
@@ -262,7 +262,7 @@ export function GuestRSVPForm({
               type="submit"
               disabled={isSubmitting || !rsvpStatus}
               size="lg"
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-medium gap-2"
+              className="w-full font-medium gap-2"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               {isSubmitting ? 'Submitting...' : 'Submit RSVP'}

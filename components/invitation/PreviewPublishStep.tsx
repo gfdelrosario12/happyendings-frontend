@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
 import { InvitationFormData } from '@/lib/types/invitation';
 import { Copy, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
@@ -70,9 +71,9 @@ export function PreviewPublishStep({
       )}
 
       {successMessage && (
-        <Alert className="bg-green-50 border-green-200">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
+        <Alert className="border-primary/20 bg-primary/5">
+          <CheckCircle2 className="h-4 w-4 text-primary" />
+          <AlertDescription className="text-primary">{successMessage}</AlertDescription>
         </Alert>
       )}
 
@@ -167,7 +168,7 @@ export function PreviewPublishStep({
                   <div className="font-medium">{guest.name}</div>
                   <div className="text-muted-foreground">{guest.email}</div>
                   {guest.group && (
-                    <Badge variant="outline" className="mt-1 text-xs">
+                    <Badge variant="secondary" className="mt-1 text-xs">
                       {guest.group}
                     </Badge>
                   )}
@@ -230,22 +231,21 @@ export function PreviewPublishStep({
 
       {/* Published Results */}
       {publishedData && (
-        <Card className="p-6 border-green-200 bg-green-50">
-          <h3 className="text-lg font-semibold text-green-900 mb-4">
+        <Card className="p-6 border-primary/20 bg-primary/5">
+          <h3 className="text-lg font-semibold text-primary mb-4">
             Invitation Published Successfully!
           </h3>
 
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-green-900">
+              <label className="text-sm font-medium text-foreground">
                 Invitation Link
               </label>
               <div className="flex gap-2 mt-1">
-                <input
-                  type="text"
+                <Input
                   value={publishedData.invitationLink || `${window.location.origin}/invitations/${publishedData.id}`}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-white border border-green-200 rounded text-sm"
+                  className="flex-1 bg-background"
                 />
                 <Button
                   onClick={() =>
@@ -265,7 +265,7 @@ export function PreviewPublishStep({
 
             {publishedData.guestLinks && publishedData.guestLinks.length > 0 && (
               <div>
-                <label className="text-sm font-medium text-green-900">
+                <label className="text-sm font-medium text-foreground">
                   Guest Links ({publishedData.guestLinks.length})
                 </label>
                 <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
@@ -273,11 +273,11 @@ export function PreviewPublishStep({
                   {publishedData.guestLinks.map((link: any) => (
                     <div
                       key={link.guestId}
-                      className="flex gap-2 p-2 bg-white rounded border border-green-200"
+                      className="flex gap-2 p-3 bg-background rounded-md border border-border items-center"
                     >
                       <div className="flex-1 text-sm">
-                        <div className="font-medium text-green-900">{link.guestEmail}</div>
-                        <code className="text-xs text-green-700 break-all">
+                        <div className="font-medium text-foreground">{link.guestEmail}</div>
+                        <code className="text-xs text-muted-foreground break-all">
                           {link.guestLink}
                         </code>
                       </div>
@@ -313,7 +313,7 @@ export function PreviewPublishStep({
           onClick={handlePublish}
           disabled={isLoading || !!publishedData}
           size="lg"
-          className="bg-accent hover:bg-accent/90 text-accent-foreground font-medium px-8"
+          className="font-medium px-8"
         >
           {isLoading ? 'Publishing...' : 'Publish Invitation'}
         </Button>

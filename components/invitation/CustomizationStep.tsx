@@ -72,8 +72,8 @@ export function CustomizationStep({
                   onClick={() => onUpdate('templateId', template.id)}
                   className={`relative rounded-lg overflow-hidden border-2 transition-all ${
                     formData.templateId === template.id
-                      ? 'border-accent ring-2 ring-accent/50'
-                      : 'border-border hover:border-accent/50'
+                      ? 'border-primary ring-2 ring-primary/50'
+                      : 'border-border hover:border-primary/50'
                   }`}
                 >
                   <div className="aspect-square bg-muted relative">
@@ -118,12 +118,14 @@ export function CustomizationStep({
           <div>
             <div className="flex items-center justify-between mb-4">
               <Label className="text-base font-medium">Colors</Label>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowColorPicker(!showColorPicker)}
-                className="text-sm text-accent hover:text-accent/80 font-medium"
+                className="text-primary hover:text-primary/80 font-medium"
               >
                 {showColorPicker ? 'Hide' : 'Customize'}
-              </button>
+              </Button>
             </div>
 
             {showColorPicker && (
@@ -245,7 +247,7 @@ export function CustomizationStep({
         <Button
           onClick={onNext}
           size="lg"
-          className="bg-accent hover:bg-accent/90 text-accent-foreground font-medium px-8"
+          className="font-medium px-8"
         >
           Add Guests
         </Button>

@@ -2,13 +2,34 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Heart, Share2, BarChart3, Mail, ArrowRight } from 'lucide-react'
+import { Heart, Share2, BarChart3, Mail, ArrowRight, Sun, Moon } from 'lucide-react'
 
 export default function Home() {
+  const [isDark, setIsDark] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    const isDarkMode = document.documentElement.classList.contains('dark') || 
+      (localStorage.getItem('theme') === 'dark') ||
+      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    
+    setIsDark(isDarkMode)
+    if (isDarkMode) document.documentElement.classList.add('dark')
+  }, [])
+
+  const toggleTheme = () => {
+    const newTheme = !isDark
+    setIsDark(newTheme)
+    document.documentElement.classList.toggle('dark', newTheme)
+    localStorage.setItem('theme', newTheme ? 'dark' : 'light')
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-accent/50 selection:bg-primary/20 selection:text-primary">
       {/* Navigation */}
       <nav className="flex items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
         <div className="font-serif text-2xl font-bold text-primary">Happy Endings</div>
@@ -23,14 +44,17 @@ export default function Home() {
             Testimonials
           </Link>
         </div>
-        <div className="flex gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full transition-transform hover:rotate-12">
+            {mounted ? (isDark ? <Sun className="h-5 w-5 text-primary" /> : <Moon className="h-5 w-5 text-muted-foreground hover:text-primary" />) : <div className="h-5 w-5" />}
+          </Button>
           <Link href="/login">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground">
               Log In
             </Button>
           </Link>
           <Link href="/signup">
-            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 shadow-sm">
               Get Started
             </Button>
           </Link>
@@ -54,17 +78,17 @@ export default function Home() {
                 <Link href="/templates">
                   <Button
                     size="lg"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
+                    className="font-medium rounded-full px-8 py-6 shadow-sm hover:shadow-md transition-all text-base w-full sm:w-auto group"
                   >
                     Create Your Invitation
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
                 <Link href="/templates">
                   <Button
                     size="lg"
                     variant="outline"
-                    className="w-full sm:w-auto border-primary text-primary hover:bg-primary/5 bg-transparent"
+                    className="rounded-full px-8 py-6 shadow-sm hover:shadow-md transition-all text-base w-full sm:w-auto bg-transparent border-border/80 hover:bg-accent/50"
                   >
                     View Templates
                   </Button>
@@ -89,24 +113,24 @@ export default function Home() {
       </section>
 
       {/* Feature Highlights */}
-      <section id="features" className="px-4 py-20 sm:px-6 lg:px-8 bg-card">
+      <section id="features" className="px-4 py-24 sm:px-6 lg:px-8 bg-card border-y border-border/40">
         <div className="mx-auto max-w-6xl">
           <div className="mb-16 text-center">
-            <h2 className="font-serif text-4xl font-bold text-foreground mb-4">
+            <h2 className="font-serif text-4xl md:text-5xl font-medium tracking-tight text-foreground mb-4">
               Everything You Need for the Perfect Wedding
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg md:text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
               Streamline your wedding planning with our powerful tools
             </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
             {/* Feature 1 */}
-            <Card className="border-border bg-background p-8 text-center hover:shadow-lg transition-shadow">
+            <Card className="border border-border/60 bg-background p-8 text-center hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-500 rounded-3xl">
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                 <Mail className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-serif text-xl font-bold text-foreground mb-3">
+              <h3 className="font-serif text-2xl font-medium text-foreground mb-3">
                 Custom Templates
               </h3>
               <p className="text-muted-foreground">
@@ -115,11 +139,11 @@ export default function Home() {
             </Card>
 
             {/* Feature 2 */}
-            <Card className="border-border bg-background p-8 text-center hover:shadow-lg transition-shadow">
+            <Card className="border border-border/60 bg-background p-8 text-center hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-500 rounded-3xl">
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                 <Share2 className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-serif text-xl font-bold text-foreground mb-3">
+              <h3 className="font-serif text-2xl font-medium text-foreground mb-3">
                 Easy RSVP Forms
               </h3>
               <p className="text-muted-foreground">
@@ -128,11 +152,11 @@ export default function Home() {
             </Card>
 
             {/* Feature 3 */}
-            <Card className="border-border bg-background p-8 text-center hover:shadow-lg transition-shadow">
+            <Card className="border border-border/60 bg-background p-8 text-center hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-500 rounded-3xl">
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                 <BarChart3 className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-serif text-xl font-bold text-foreground mb-3">
+              <h3 className="font-serif text-2xl font-medium text-foreground mb-3">
                 Real-Time Tracking
               </h3>
               <p className="text-muted-foreground">
@@ -144,13 +168,13 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section id="how" className="px-4 py-20 sm:px-6 lg:px-8">
+      <section id="how" className="px-4 py-24 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="mb-16 text-center">
-            <h2 className="font-serif text-4xl font-bold text-foreground mb-4">
+            <h2 className="font-serif text-4xl md:text-5xl font-medium tracking-tight text-foreground mb-4">
               How It Works
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg md:text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
               Three simple steps to your perfect wedding invitations
             </p>
           </div>
@@ -161,7 +185,7 @@ export default function Home() {
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-serif text-lg font-bold">
                 1
               </div>
-              <h3 className="font-serif text-2xl font-bold text-foreground">
+              <h3 className="font-serif text-2xl font-medium text-foreground">
                 Choose a Template
               </h3>
               <p className="text-muted-foreground">
@@ -174,7 +198,7 @@ export default function Home() {
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-serif text-lg font-bold">
                 2
               </div>
-              <h3 className="font-serif text-2xl font-bold text-foreground">
+              <h3 className="font-serif text-2xl font-medium text-foreground">
                 Customize Your Invitation
               </h3>
               <p className="text-muted-foreground">
@@ -187,7 +211,7 @@ export default function Home() {
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-serif text-lg font-bold">
                 3
               </div>
-              <h3 className="font-serif text-2xl font-bold text-foreground">
+              <h3 className="font-serif text-2xl font-medium text-foreground">
                 Share & Track RSVPs
               </h3>
               <p className="text-muted-foreground">
@@ -199,20 +223,20 @@ export default function Home() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="px-4 py-20 sm:px-6 lg:px-8 bg-secondary/20">
+      <section id="testimonials" className="px-4 py-24 sm:px-6 lg:px-8 bg-accent/30 border-y border-border/40">
         <div className="mx-auto max-w-6xl">
           <div className="mb-16 text-center">
-            <h2 className="font-serif text-4xl font-bold text-foreground mb-4">
+            <h2 className="font-serif text-4xl md:text-5xl font-medium tracking-tight text-foreground mb-4">
               Loved by Happy Couples
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg md:text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
               Join hundreds of couples who&apos;ve created the perfect invitations
             </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
             {/* Testimonial 1 */}
-            <Card className="border-border bg-background p-8">
+            <Card className="border border-border/60 bg-background p-8 rounded-3xl">
               <div className="mb-4 flex gap-1">
                 {[...Array(5)].map((_, i) => (
                   <Heart key={i} className="h-5 w-5 fill-primary text-primary" />
@@ -228,7 +252,7 @@ export default function Home() {
             </Card>
 
             {/* Testimonial 2 */}
-            <Card className="border-border bg-background p-8">
+            <Card className="border border-border/60 bg-background p-8 rounded-3xl">
               <div className="mb-4 flex gap-1">
                 {[...Array(5)].map((_, i) => (
                   <Heart key={i} className="h-5 w-5 fill-primary text-primary" />
@@ -244,7 +268,7 @@ export default function Home() {
             </Card>
 
             {/* Testimonial 3 */}
-            <Card className="border-border bg-background p-8">
+            <Card className="border border-border/60 bg-background p-8 rounded-3xl">
               <div className="mb-4 flex gap-1">
                 {[...Array(5)].map((_, i) => (
                   <Heart key={i} className="h-5 w-5 fill-primary text-primary" />
@@ -263,21 +287,21 @@ export default function Home() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="px-4 py-20 sm:px-6 lg:px-8 bg-primary text-primary-foreground">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="font-serif text-4xl font-bold mb-4">
+      <section className="px-4 py-24 sm:px-6 lg:px-8 bg-background relative overflow-hidden">
+        <div className="mx-auto max-w-3xl text-center relative z-10">
+          <h2 className="font-serif text-4xl md:text-5xl font-medium tracking-tight text-foreground mb-6">
             Start Your Happy Ending Today
           </h2>
-          <p className="mb-8 text-lg opacity-90">
+          <p className="mb-10 text-lg md:text-xl text-muted-foreground font-light max-w-xl mx-auto leading-relaxed">
             Create your beautiful wedding invitations in minutes and collect RSVPs effortlessly
           </p>
           <Link href="/templates">
             <Button
               size="lg"
-              className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+              className="font-medium rounded-full px-8 py-6 shadow-sm hover:shadow-md transition-all text-base group"
             >
               Create Your Invitation Now
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
         </div>
