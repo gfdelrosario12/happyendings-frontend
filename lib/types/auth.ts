@@ -1,16 +1,20 @@
-export type Role = 'USER' | 'ADMIN' | 'ORGANIZER';
+export type Role = 'ADMIN' | 'REGISTERED_USER';
 
-export interface UserPayload {
-  userId: string;
+export interface User {
+  id: number;
   email: string;
+  name?: string;
+  gender?: string;
+  age?: number;
   role: Role;
-  exp: number; // Expiration time
 }
 
 export interface AuthContextType {
-  user: UserPayload | null;
+  user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (token: string) => void;
-  logout: () => void;
+  login: (token: string, user: User) => void;
+  logout: () => Promise<void>;
+  updateUser: (user: User) => void;
 }

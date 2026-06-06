@@ -13,17 +13,17 @@ export default function GuestRoute({
   children,
   redirectTo = '/dashboard',
 }: GuestRouteProps) {
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && isAuthenticated) {
+    if (!isLoading && isAuthenticated) {
       router.replace(redirectTo)
     }
-  }, [isAuthenticated, loading, router, redirectTo])
+  }, [isAuthenticated, isLoading, router, redirectTo])
 
   // Optional: loading state to prevent flicker
-  if (loading || isAuthenticated) {
+  if (isLoading || isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground text-sm">

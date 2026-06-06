@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   Table,
   TableBody,
@@ -82,6 +83,7 @@ const mockGuests: Guest[] = [
 ]
 
 export default function Dashboard() {
+  const { user, logout } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [guestFilter, setGuestFilter] = useState<'all' | 'attending' | 'pending' | 'not-attending'>('all')
 
@@ -136,14 +138,14 @@ export default function Dashboard() {
               <Link href="/" className="font-serif text-2xl font-bold text-primary">
                 Happy Endings
               </Link>
-              <p className="text-sm text-muted-foreground mt-1">Sarah & Michael&apos;s Wedding</p>
+              <p className="text-sm text-muted-foreground mt-1">{user?.name ? `${user.name}'s Wedding` : "Sarah & Michael's Wedding"}</p>
             </div>
             <div className="flex gap-4 items-center">
               <Button variant="outline" size="sm" className="border-border text-foreground bg-transparent">
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </Button>
-              <Button variant="ghost" size="sm" className="text-foreground">
+              <Button variant="ghost" size="sm" onClick={logout} className="text-foreground">
                 <LogOut className="h-4 w-4 mr-2" />
                 Log Out
               </Button>

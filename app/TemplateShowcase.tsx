@@ -7,8 +7,10 @@ import { DNACodeGenerator } from './design-system'
 const PREMADE_DNAS = [
   { id: 'royal-gold', name: 'Royal Gold', dna: DNACodeGenerator.generate('RYL', 'GLD', 'PLAY', 'MON', 'STB', 'NON') },
   { id: 'minimal-mono', name: 'Minimal Mono', dna: DNACodeGenerator.generate('MIN', 'MON', 'MONT', 'CTR', 'CRS', 'NON') },
-  { id: 'vintage-pink', name: 'Vintage Romance', dna: DNACodeGenerator.generate('VIN', 'PNK', 'CORM', 'FUL', 'POL', 'NON') },
-  { id: 'garden-emerald', name: 'Emerald Garden', dna: DNACodeGenerator.generate('GRD', 'EMR', 'PLAY', 'SPL', 'MAS', 'NON') }
+  { id: 'vintage-bordeaux', name: 'Vintage Bordeaux', dna: DNACodeGenerator.generate('VIN', 'VIN', 'ALEX', 'CTR', 'POL', 'NON') },
+  { id: 'garden-sage', name: 'Emerald & Sage', dna: DNACodeGenerator.generate('GRD', 'SGE', 'CORM', 'SPL', 'MAS', 'NON') },
+  { id: 'celestial-lavender', name: 'Celestial Lavender', dna: DNACodeGenerator.generate('CEL', 'LAV', 'CINZ', 'PRX', 'STB', 'NON') },
+  { id: 'terracotta-sunset', name: 'Terracotta Sunset', dna: DNACodeGenerator.generate('TRP', 'TER', 'OUTF', 'FUL', 'MAS', 'NON') }
 ];
 
 export function TemplateShowcase() {
@@ -21,7 +23,7 @@ export function TemplateShowcase() {
 
   return (
     <section id="templates" className="px-4 py-24 sm:px-6 lg:px-8 bg-background">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <div className="mb-16 text-center">
           <h2 className="font-serif text-4xl md:text-5xl font-medium tracking-tight text-foreground mb-4">
             Curated Design Stacks
@@ -31,11 +33,11 @@ export function TemplateShowcase() {
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {PREMADE_DNAS.map((template) => (
             <Card key={template.id} className="group overflow-hidden border border-border/60 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 rounded-3xl flex flex-col">
               {/* Template Visual Preview using the mapped Renderer */}
-              <div className="relative h-[400px] w-full transition-transform duration-700 group-hover:scale-[1.02] bg-muted/20">
+              <div className="relative h-[320px] w-full transition-transform duration-700 group-hover:scale-[1.02] bg-muted/20">
                 {/* Scaled wrapper to fit a desktop-sized render perfectly into the thumbnail */}
                 <div className="absolute inset-0 origin-top-left scale-[0.5] w-[200%] h-[200%] pointer-events-none">
                   <HybridRenderer

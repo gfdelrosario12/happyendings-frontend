@@ -1,7 +1,9 @@
+import React from 'react';
+
 // 1. LAYER IDENTIFIERS
 export type BaseKitId = 'RYL' | 'GRD' | 'CEL' | 'MIN' | 'VIN' | 'TRP';
-export type PaletteId = 'GLD' | 'MID' | 'BLU' | 'EMR' | 'PNK' | 'MON' | 'LAV' | 'SUN';
-export type FontId = 'PLAY' | 'CORM' | 'MONT' | 'INTR' | 'POPP' | 'GVIB';
+export type PaletteId = 'GLD' | 'MID' | 'BLU' | 'EMR' | 'PNK' | 'MON' | 'LAV' | 'SUN' | 'SGE' | 'PRL' | 'TER' | 'VIN' | 'PLT';
+export type FontId = 'PLAY' | 'CORM' | 'MONT' | 'INTR' | 'POPP' | 'GVIB' | 'CINZ' | 'SACR' | 'BORM' | 'ALEX' | 'OUTF';
 export type HeroId = 'MON' | 'CTR' | 'SPL' | 'FUL' | 'PRX';
 export type GalleryId = 'STB' | 'CRS' | 'MAS' | 'POL' | 'TML';
 export type AnimationId = 'NON' | 'FAD' | 'SLD' | 'FLT' | 'PTC' | 'CFT';
@@ -24,8 +26,8 @@ export const BaseKitRegistry: Record<BaseKitId, BaseKit> = {
   RYL: {
     id: 'RYL',
     name: 'Royal',
-    allowedPalettes: ['GLD', 'MID', 'BLU'],
-    allowedFonts: ['PLAY', 'CORM'],
+    allowedPalettes: ['GLD', 'MID', 'BLU', 'PRL', 'VIN'],
+    allowedFonts: ['PLAY', 'CORM', 'CINZ', 'BORM'],
     allowedHeroes: ['MON', 'CTR'],
     allowedGalleries: ['STB', 'CRS'],
     maxAnimationLevel: 1,
@@ -33,8 +35,8 @@ export const BaseKitRegistry: Record<BaseKitId, BaseKit> = {
   MIN: {
     id: 'MIN',
     name: 'Minimal',
-    allowedPalettes: ['MON', 'GLD', 'MID'],
-    allowedFonts: ['MONT', 'INTR', 'POPP'],
+    allowedPalettes: ['MON', 'GLD', 'MID', 'PLT'],
+    allowedFonts: ['MONT', 'INTR', 'POPP', 'OUTF'],
     allowedHeroes: ['CTR', 'SPL'],
     allowedGalleries: ['CRS', 'TML'],
     maxAnimationLevel: 0,
@@ -42,8 +44,8 @@ export const BaseKitRegistry: Record<BaseKitId, BaseKit> = {
   VIN: {
     id: 'VIN',
     name: 'Vintage',
-    allowedPalettes: ['PNK', 'GLD', 'MID'],
-    allowedFonts: ['CORM', 'PLAY', 'GVIB'],
+    allowedPalettes: ['PNK', 'GLD', 'MID', 'VIN', 'PRL'],
+    allowedFonts: ['CORM', 'PLAY', 'GVIB', 'ALEX', 'SACR'],
     allowedHeroes: ['CTR', 'FUL'],
     allowedGalleries: ['POL', 'MAS'],
     maxAnimationLevel: 1,
@@ -51,8 +53,8 @@ export const BaseKitRegistry: Record<BaseKitId, BaseKit> = {
   GRD: {
     id: 'GRD',
     name: 'Garden',
-    allowedPalettes: ['EMR', 'PNK', 'SUN'],
-    allowedFonts: ['PLAY', 'CORM', 'MONT'],
+    allowedPalettes: ['EMR', 'PNK', 'SUN', 'SGE', 'TER'],
+    allowedFonts: ['PLAY', 'CORM', 'MONT', 'SACR'],
     allowedHeroes: ['SPL', 'FUL', 'PRX'],
     allowedGalleries: ['MAS', 'CRS'],
     maxAnimationLevel: 2,
@@ -60,8 +62,8 @@ export const BaseKitRegistry: Record<BaseKitId, BaseKit> = {
   CEL: {
     id: 'CEL',
     name: 'Celestial',
-    allowedPalettes: ['MID', 'LAV', 'BLU'],
-    allowedFonts: ['CORM', 'INTR', 'PLAY'],
+    allowedPalettes: ['MID', 'LAV', 'BLU', 'PLT'],
+    allowedFonts: ['CORM', 'INTR', 'PLAY', 'CINZ'],
     allowedHeroes: ['PRX', 'FUL', 'MON'],
     allowedGalleries: ['MAS', 'STB'],
     maxAnimationLevel: 2,
@@ -69,8 +71,8 @@ export const BaseKitRegistry: Record<BaseKitId, BaseKit> = {
   TRP: {
     id: 'TRP',
     name: 'Tropical',
-    allowedPalettes: ['SUN', 'EMR', 'PNK'],
-    allowedFonts: ['MONT', 'POPP', 'PLAY'],
+    allowedPalettes: ['SUN', 'EMR', 'PNK', 'TER'],
+    allowedFonts: ['MONT', 'POPP', 'PLAY', 'OUTF'],
     allowedHeroes: ['SPL', 'FUL'],
     allowedGalleries: ['CRS', 'MAS'],
     maxAnimationLevel: 1,
@@ -86,15 +88,25 @@ export const PaletteRegistry: Record<PaletteId, { name: string, bg: string, prim
   MON: { name: 'Monochrome', bg: '#ffffff', primary: '#000000', text: '#000000' },
   LAV: { name: 'Lavender', bg: '#f3e8ff', primary: '#7e22ce', text: '#3b0764' },
   SUN: { name: 'Sunset', bg: '#fff7ed', primary: '#ea580c', text: '#7c2d12' },
+  SGE: { name: 'Sage Green', bg: '#f4f7f4', primary: '#708238', text: '#2f3b2f' },
+  PRL: { name: 'Pearl Rose', bg: '#fffafa', primary: '#e6c280', text: '#4a3c31' },
+  TER: { name: 'Terracotta', bg: '#fbf5f2', primary: '#c97a62', text: '#4e2a1e' },
+  VIN: { name: 'Bordeaux', bg: '#f5efe6', primary: '#5c1d24', text: '#2c221e' },
+  PLT: { name: 'Platinum', bg: '#fafafa', primary: '#7f8c8d', text: '#2c3e50' },
 };
 
-export const FontRegistry: Record<FontId, { name: string, className: string }> = {
+export const FontRegistry: Record<FontId, { name: string, className: string, style?: React.CSSProperties }> = {
   PLAY: { name: 'Playfair Display', className: 'font-serif' },
-  CORM: { name: 'Cormorant', className: 'font-serif' },
-  MONT: { name: 'Montserrat', className: 'font-sans' },
-  INTR: { name: 'Inter', className: 'font-sans' },
-  POPP: { name: 'Poppins', className: 'font-sans' },
-  GVIB: { name: 'Great Vibes', className: 'font-serif italic' },
+  CORM: { name: 'Cormorant', className: 'font-serif', style: { fontFamily: "'Cormorant Garamond', serif" } },
+  MONT: { name: 'Montserrat', className: 'font-sans', style: { fontFamily: "'Montserrat', sans-serif" } },
+  INTR: { name: 'Inter', className: 'font-sans', style: { fontFamily: "'Inter', sans-serif" } },
+  POPP: { name: 'Poppins', className: 'font-sans', style: { fontFamily: "'Poppins', sans-serif" } },
+  GVIB: { name: 'Great Vibes', className: 'font-serif italic', style: { fontFamily: "'Great Vibes', cursive" } },
+  CINZ: { name: 'Cinzel', className: 'font-serif', style: { fontFamily: "'Cinzel', serif", letterSpacing: '0.1em' } },
+  SACR: { name: 'Sacramento', className: 'font-serif', style: { fontFamily: "'Sacramento', cursive" } },
+  BORM: { name: 'Bodoni Moda', className: 'font-serif', style: { fontFamily: "'Bodoni Moda', serif" } },
+  ALEX: { name: 'Alex Brush', className: 'font-serif', style: { fontFamily: "'Alex Brush', cursive" } },
+  OUTF: { name: 'Outfit', className: 'font-sans', style: { fontFamily: "'Outfit', sans-serif" } },
 };
 
 export const HeroRegistry: Record<HeroId, { name: string, description: string }> = {
@@ -183,11 +195,11 @@ export class DNACodeGenerator {
 
 export class DNACodeParser {
   static parse(dna: string) {
-    if (!dna.startsWith('DNA-1')) {
+    if (!dna.startsWith('DNA-1:')) {
       throw new Error('Invalid DNA version');
     }
 
-    const parts = dna.replace('DNA-1-', '').split('-');
+    const parts = dna.split(':');
     
     const [_, base, pal, font, hero, gal, anm] = parts as [string, BaseKitId, PaletteId, FontId, HeroId, GalleryId, AnimationId];
 
