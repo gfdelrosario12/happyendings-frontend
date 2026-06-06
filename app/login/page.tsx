@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Heart } from 'lucide-react'
+import GuestRoute from '@/components/auth/GuestRoute'
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
@@ -21,7 +22,8 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/10 to-background px-4">
+    <GuestRoute>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/10 to-background px-4">
       <Card className="w-full max-w-md border-border bg-background shadow-xl">
         <div className="p-8 space-y-8">
           {/* Logo & Heading */}
@@ -124,6 +126,7 @@ export default function Login() {
           </p>
         </div>
       </Card>
-    </div>
+      </div>
+    </GuestRoute>
   )
 }
