@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { cn } from "@/lib/utils";
 import { AuthProvider } from '@/contexts/AuthContext';
+import { QueryProvider } from '@/contexts/QueryProvider';
 import { Toaster } from 'sonner';
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -45,9 +46,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className={`${playfair.variable} font-sans antialiased`}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </QueryProvider>
         <Toaster richColors position="top-right" />
         <Analytics />
       </body>

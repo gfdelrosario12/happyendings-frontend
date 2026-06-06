@@ -67,7 +67,14 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     // Try parsing as JSON first, fallback to text
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
-      return response.json() as Promise<T>;
+      const json = await response.json();
+      if (json && typeof json === 'object' && 'success' in json) {
+        if (!json.success) {
+          throw new APIError(json.error || 'Request failed', response.status);
+        }
+        return json.data as T;
+      }
+      return json as T;
     }
     
     const textData = await response.text();
