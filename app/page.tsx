@@ -100,7 +100,7 @@ export default function Home() {
             <div className="relative space-y-6">
               <div className="relative aspect-square overflow-hidden rounded-xl shadow-2xl">
                 <Image
-                  src="/public/assets/wedding_hands.jpg"
+                  src="/assets/wedding_hands.jpg"
                   alt="Elegant wedding invitation with ivory and blush design"
                   fill
                   className="object-cover"

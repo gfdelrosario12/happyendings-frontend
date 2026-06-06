@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { Heart } from 'lucide-react';
+import { Heart, AlertCircle } from 'lucide-react';
 import GuestRoute from '@/components/auth/GuestRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
@@ -15,12 +15,20 @@ import { setStoredToken } from '@/lib/auth';
 import { User } from '@/lib/types/auth';
 import { toast } from 'sonner';
 
-export default function Login() {
+function LoginFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect');
+
+  useEffect(() => {
+    if (redirect) {
+      toast.warning('Authentication required. Please log in to access the requested page.');
+    }
+  }, [redirect]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,8 +56,10 @@ export default function Login() {
       login(token, user);
       toast.success(`Welcome back, ${user.name || user.email}!`);
 
-      // 4. Redirect based on user role
-      if (user.role === 'ADMIN') {
+      // 4. Redirect based on user role or custom redirect query parameter
+      if (redirect) {
+        router.push(redirect);
+      } else if (user.role === 'ADMIN') {
         router.push('/admin');
       } else {
         router.push('/dashboard');
@@ -75,6 +85,14 @@ export default function Login() {
               <h1 className="font-serif text-3xl font-bold text-foreground">Happy Endings</h1>
               <p className="text-muted-foreground font-light">Welcome back to your wedding planner</p>
             </div>
+
+            {/* Redirection Warning Box */}
+            {redirect && (
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-sm">
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                <span>You need to log in to access the requested page.</span>
+              </div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -157,5 +175,19 @@ export default function Login() {
         </Card>
       </div>
     </GuestRoute>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground text-sm">
+          Loading...
+        </div>
+      </div>
+    }>
+      <LoginFormContent />
+    </Suspense>
   );
 }
