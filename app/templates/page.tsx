@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ArrowRight, Search, Sun, Moon } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { TemplateAPI, WeddingTemplate } from '@/lib/api/template'
 
 const templates = [
   {
@@ -64,11 +65,13 @@ const categories = ['All', 'Classic', 'Modern', 'Floral', 'Minimal']
 const themes = ['All', 'Ivory & Gold', 'Blush & Cream', 'Blush & Peach', 'Gold & Ivory', 'Rose & Gold']
 
 export default function Templates() {
+  const [dbTemplates, setDbTemplates] = useState<WeddingTemplate[]>([])
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [selectedTheme, setSelectedTheme] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [isDark, setIsDark] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
@@ -78,6 +81,19 @@ export default function Templates() {
     
     setIsDark(isDarkMode)
     if (isDarkMode) document.documentElement.classList.add('dark')
+
+    async function loadTemplates() {
+      setIsLoading(true)
+      try {
+        const list = await TemplateAPI.listTemplates()
+        setDbTemplates(list)
+      } catch (err) {
+        console.error('Failed to load templates from backend:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadTemplates()
   }, [])
 
   const toggleTheme = () => {
@@ -87,9 +103,32 @@ export default function Templates() {
     localStorage.setItem('theme', newTheme ? 'dark' : 'light')
   }
 
-  const filteredTemplates = templates.filter(template => {
+  // Map backend templates to frontend layout structure
+  const mappedTemplates = dbTemplates.length > 0
+    ? dbTemplates.map(t => {
+        let themeLabel = 'Custom Theme';
+        try {
+          if (t.theme) {
+            const parsed = JSON.parse(t.theme);
+            if (parsed.backgroundColor) {
+              themeLabel = `${parsed.backgroundColor} & ${parsed.accentColor}`;
+            }
+          }
+        } catch (e) {}
+        return {
+          id: t.id.toString(),
+          name: t.name,
+          category: t.category || 'Classic',
+          theme: themeLabel,
+          image: t.previewImageUrl || '/template-classic.jpg',
+          description: t.description || 'Elegant wedding invitation'
+        };
+      })
+    : templates;
+
+  const filteredTemplates = mappedTemplates.filter(template => {
     const categoryMatch = selectedCategory === 'All' || template.category === selectedCategory
-    const themeMatch = selectedTheme === 'All' || template.theme === selectedTheme
+    const themeMatch = selectedTheme === 'All' || template.theme.toLowerCase().includes(selectedTheme.toLowerCase())
     const searchMatch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase())
     return categoryMatch && themeMatch && searchMatch
@@ -191,7 +230,11 @@ export default function Templates() {
       {/* Templates Grid */}
       <section className="px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-6xl">
-          {filteredTemplates.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-24">
+              <p className="text-muted-foreground">Loading templates catalog...</p>
+            </div>
+          ) : filteredTemplates.length > 0 ? (
             <div className="grid gap-8 sm:gap-10 md:grid-cols-2 lg:grid-cols-3">
               {filteredTemplates.map(template => (
                 <Card

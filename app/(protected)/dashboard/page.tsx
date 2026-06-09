@@ -1,11 +1,14 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { useAuth } from '@/contexts/AuthContext'
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext';
+import { InvitationAPI } from '@/lib/api/invitation';
+import { PublishedInvitation, InvitationAnalytics } from '@/lib/types/invitation';
 import {
   Table,
   TableBody,
@@ -13,7 +16,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from '@/components/ui/table';
 import {
   LogOut,
   Users,
@@ -24,108 +27,185 @@ import {
   Edit,
   Share2,
   Settings,
-} from 'lucide-react'
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Guest {
-  id: string
-  name: string
-  email: string
-  status: 'attending' | 'not-attending' | 'pending'
-  numGuests: number
-  mealPreference?: string
-  rsvpDate?: string
+  id: string;
+  name: string;
+  email: string;
+  status: 'attending' | 'not-attending' | 'pending' | 'maybe';
+  numGuests: number;
+  mealPreference?: string;
+  rsvpDate?: string;
 }
 
-const mockGuests: Guest[] = [
-  {
-    id: '1',
-    name: 'Emma Johnson',
-    email: 'emma@example.com',
-    status: 'attending',
-    numGuests: 2,
-    mealPreference: 'Chicken',
-    rsvpDate: '2024-03-20'
-  },
-  {
-    id: '2',
-    name: 'James Smith',
-    email: 'james@example.com',
-    status: 'attending',
-    numGuests: 1,
-    mealPreference: 'Fish',
-    rsvpDate: '2024-03-18'
-  },
-  {
-    id: '3',
-    name: 'Sarah Davis',
-    email: 'sarah@example.com',
-    status: 'pending',
-    numGuests: 1,
-    rsvpDate: undefined
-  },
-  {
-    id: '4',
-    name: 'Michael Brown',
-    email: 'michael@example.com',
-    status: 'not-attending',
-    numGuests: 0,
-    rsvpDate: '2024-03-15'
-  },
-  {
-    id: '5',
-    name: 'Lisa Wilson',
-    email: 'lisa@example.com',
-    status: 'attending',
-    numGuests: 1,
-    mealPreference: 'Vegetarian',
-    rsvpDate: '2024-03-22'
-  }
-]
-
 export default function Dashboard() {
-  const { user, logout } = useAuth()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [guestFilter, setGuestFilter] = useState<'all' | 'attending' | 'pending' | 'not-attending'>('all')
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [guestFilter, setGuestFilter] = useState<'all' | 'attending' | 'pending' | 'not-attending'>('all');
+  const [invitations, setInvitations] = useState<PublishedInvitation[]>([]);
+  const [activeInvitation, setActiveInvitation] = useState<PublishedInvitation | null>(null);
+  const [analytics, setAnalytics] = useState<InvitationAnalytics | null>(null);
+  const [guests, setGuests] = useState<Guest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadDashboardData() {
+      setIsLoading(true);
+      try {
+        const userInvitations = await InvitationAPI.listInvitations();
+        setInvitations(userInvitations);
+        if (userInvitations.length > 0) {
+          const firstInv = userInvitations[0];
+          setActiveInvitation(firstInv);
+          
+          const data = await InvitationAPI.getInvitationAnalytics(firstInv.id);
+          setAnalytics(data);
+          
+          const mappedGuests = (data.responses || []).map(r => ({
+            id: r.guestId,
+            name: r.guestName,
+            email: r.guestEmail,
+            status: r.rsvpStatus === 'accepted' ? 'attending' : r.rsvpStatus === 'declined' ? 'not-attending' : r.rsvpStatus === 'maybe' ? 'maybe' : 'pending' as any,
+            numGuests: r.rsvpStatus === 'accepted' ? (r.plusOne ? 2 : 1) : 0,
+            mealPreference: r.dietaryRestrictions || undefined,
+            rsvpDate: r.respondedAt || undefined
+          }));
+          setGuests(mappedGuests);
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+        toast.error('Failed to load dashboard data');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadDashboardData();
+  }, []);
 
   // Calculate statistics
-  const totalInvited = mockGuests.length
-  const attending = mockGuests.filter(g => g.status === 'attending').length
-  const notAttending = mockGuests.filter(g => g.status === 'not-attending').length
-  const pending = mockGuests.filter(g => g.status === 'pending').length
-  const totalGuests = mockGuests.reduce((sum, g) => sum + g.numGuests, 0)
+  const totalInvited = guests.length;
+  const attending = guests.filter(g => g.status === 'attending').length;
+  const notAttending = guests.filter(g => g.status === 'not-attending').length;
+  const pending = guests.filter(g => g.status === 'pending' || g.status === 'maybe').length;
+  const totalGuests = guests.reduce((sum, g) => sum + (g.status === 'attending' ? g.numGuests : 0), 0);
 
   // Filter guests
-  const filteredGuests = mockGuests.filter(guest => {
+  const filteredGuests = guests.filter(guest => {
     const matchesSearch = guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      guest.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = guestFilter === 'all' || guest.status === guestFilter
-    return matchesSearch && matchesFilter
-  })
+      guest.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = guestFilter === 'all' || guest.status === guestFilter || (guestFilter === 'pending' && guest.status === 'maybe');
+    return matchesSearch && matchesFilter;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'attending':
-        return 'text-green-600 bg-green-50'
+        return 'text-green-600 bg-green-50';
       case 'not-attending':
-        return 'text-red-600 bg-red-50'
+        return 'text-red-600 bg-red-50';
       case 'pending':
-        return 'text-amber-600 bg-amber-50'
+      case 'maybe':
+        return 'text-amber-600 bg-amber-50';
       default:
-        return 'text-gray-600 bg-gray-50'
+        return 'text-gray-600 bg-gray-50';
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'attending':
-        return <Check className="h-4 w-4" />
+        return <Check className="h-4 w-4" />;
       case 'not-attending':
-        return <X className="h-4 w-4" />
+        return <X className="h-4 w-4" />;
       case 'pending':
-        return <Clock className="h-4 w-4" />
+      case 'maybe':
+        return <Clock className="h-4 w-4" />;
       default:
-        return null
+        return null;
     }
+  };
+
+  const handleExportCSV = async () => {
+    if (!activeInvitation) return;
+    try {
+      const blob = await InvitationAPI.exportGuestResponses(activeInvitation.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `responses-${activeInvitation.id}-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Guest responses exported successfully.');
+    } catch (error) {
+      console.error('Failed to export responses:', error);
+      toast.error('Failed to export responses');
+    }
+  };
+
+  const handleShare = () => {
+    if (!activeInvitation) return;
+    const link = activeInvitation.invitationLink || `${window.location.origin}/rsvp/${activeInvitation.id}`;
+    navigator.clipboard.writeText(link);
+    toast.success('Invitation link copied to clipboard!');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="p-8 border-secondary/20">
+          <p className="text-muted-foreground text-center">Loading dashboard...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (invitations.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/10">
+        <header className="border-b border-border bg-card sticky top-0 z-40">
+          <div className="px-4 py-6 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <Link href="/" className="font-serif text-2xl font-bold text-primary">
+                  Happy Endings
+                </Link>
+                <p className="text-sm text-muted-foreground mt-1">My Wedding</p>
+              </div>
+              <div className="flex gap-4 items-center">
+                <Button variant="ghost" size="sm" onClick={logout} className="text-foreground">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log Out
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="flex items-center justify-center p-12 mt-12">
+          <Card className="w-full max-w-lg p-12 text-center border-secondary/20 space-y-6 animate-in fade-in-50 duration-300">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+              <Users className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="font-serif text-3xl font-bold text-foreground">Welcome to Happy Endings!</h2>
+            <p className="text-muted-foreground">
+              You haven&apos;t created any invitations yet. Create one now to start managing your guests and tracking RSVPs in real time.
+            </p>
+            <Button
+              onClick={() => router.push('/create-invitation')}
+              size="lg"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground font-medium w-full"
+            >
+              Create Your First Invitation
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -138,12 +218,19 @@ export default function Dashboard() {
               <Link href="/" className="font-serif text-2xl font-bold text-primary">
                 Happy Endings
               </Link>
-              <p className="text-sm text-muted-foreground mt-1">{user?.name ? `${user.name}'s Wedding` : "Sarah & Michael's Wedding"}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {activeInvitation ? `${activeInvitation.coupleName}'s Wedding` : "My Wedding"}
+              </p>
             </div>
             <div className="flex gap-4 items-center">
-              <Button variant="outline" size="sm" className="border-border text-foreground bg-transparent">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-border text-foreground bg-transparent"
+                onClick={() => router.push('/invitations')}
+              >
                 <Settings className="h-4 w-4 mr-2" />
-                Settings
+                Manage Invitations
               </Button>
               <Button variant="ghost" size="sm" onClick={logout} className="text-foreground">
                 <LogOut className="h-4 w-4 mr-2" />
@@ -173,7 +260,9 @@ export default function Dashboard() {
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Attending</p>
                 <p className="font-serif text-3xl font-bold text-green-600">{attending}</p>
-                <p className="text-xs text-muted-foreground">{Math.round((attending/totalInvited)*100)}% confirmed</p>
+                <p className="text-xs text-muted-foreground">
+                  {totalInvited > 0 ? Math.round((attending / totalInvited) * 100) : 0}% confirmed
+                </p>
               </div>
             </Card>
 
@@ -198,7 +287,7 @@ export default function Dashboard() {
             {/* Total Guests */}
             <Card className="border-border bg-background p-6 border-l-4 border-l-primary">
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Total Guests</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Attending</p>
                 <p className="font-serif text-3xl font-bold text-primary">{totalGuests}</p>
                 <p className="text-xs text-muted-foreground">including plus-ones</p>
               </div>
@@ -214,11 +303,18 @@ export default function Dashboard() {
                 <p className="text-sm text-muted-foreground mt-1">Manage and track all your RSVPs</p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" className="border-border text-foreground bg-transparent">
+                <Button
+                  variant="outline"
+                  className="border-border text-foreground bg-transparent"
+                  onClick={handleExportCSV}
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Export CSV
                 </Button>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={handleShare}
+                >
                   <Share2 className="h-4 w-4 mr-2" />
                   Share Invitation
                 </Button>
@@ -243,7 +339,7 @@ export default function Dashboard() {
                   {['all', 'attending', 'pending', 'not-attending'].map(status => (
                     <button
                       key={status}
-                      onClick={() => setGuestFilter(status as 'all' | 'attending' | 'pending' | 'not-attending')}
+                      onClick={() => setGuestFilter(status as any)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         guestFilter === status
                           ? 'bg-primary text-primary-foreground'
@@ -266,10 +362,9 @@ export default function Dashboard() {
                       <TableHead className="text-foreground font-semibold">Name</TableHead>
                       <TableHead className="text-foreground font-semibold">Email</TableHead>
                       <TableHead className="text-foreground font-semibold">Status</TableHead>
-                      <TableHead className="text-foreground font-semibold text-center">Guests</TableHead>
-                      <TableHead className="text-foreground font-semibold">Meal</TableHead>
+                      <TableHead className="text-foreground font-semibold text-center">Attending Count</TableHead>
+                      <TableHead className="text-foreground font-semibold">Dietary Restrictions</TableHead>
                       <TableHead className="text-foreground font-semibold">RSVP Date</TableHead>
-                      <TableHead className="text-foreground font-semibold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -292,15 +387,6 @@ export default function Dashboard() {
                         <TableCell className="text-muted-foreground text-sm">
                           {guest.rsvpDate ? new Date(guest.rsvpDate).toLocaleDateString() : '—'}
                         </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-primary hover:bg-primary/10"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -319,5 +405,5 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

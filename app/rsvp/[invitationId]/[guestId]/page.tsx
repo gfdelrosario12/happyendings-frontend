@@ -1,21 +1,22 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import { InvitationAPI } from '@/lib/api/invitation';
 import { GuestRSVPForm } from '@/components/invitation/GuestRSVPForm';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { setStoredToken } from '@/lib/auth';
 
-export default function GuestRSVPPage() {
+function GuestRSVPContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const invitationId = params.invitationId as string;
   const guestId = params.guestId as string;
+  const token = searchParams.get('token');
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [invitation, setInvitation] = useState<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [guest, setGuest] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +26,10 @@ export default function GuestRSVPPage() {
     setError(null);
 
     try {
+      if (token) {
+        setStoredToken(token);
+      }
+      
       // Fetch invitation details
       const invitationData = await InvitationAPI.getInvitation(invitationId);
       setInvitation(invitationData);
@@ -39,7 +44,7 @@ export default function GuestRSVPPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [invitationId, guestId]);
+  }, [invitationId, guestId, token]);
 
   useEffect(() => {
     loadInvitationData();
@@ -136,5 +141,19 @@ export default function GuestRSVPPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function GuestRSVPPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="p-8 border-secondary/20">
+          <p className="text-muted-foreground text-center">Loading invitation...</p>
+        </Card>
+      </div>
+    }>
+      <GuestRSVPContent />
+    </Suspense>
   );
 }

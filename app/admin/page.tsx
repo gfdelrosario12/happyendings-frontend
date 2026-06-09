@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { UserAPI, UserAccount, ActionLog } from '@/lib/api/user';
 import { 
   Users, 
   Settings, 
@@ -14,26 +15,91 @@ import {
   UserCheck, 
   Trash2,
   Calendar,
-  Layers
+  Layers,
+  UserX
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdminPage() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'users' | 'settings' | 'logs'>('users');
+  const [users, setUsers] = useState<UserAccount[]>([]);
+  const [logs, setLogs] = useState<ActionLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const mockUsers = [
-    { id: 1, name: 'Alice Smith', email: 'alice@example.com', role: 'ADMIN', status: 'Active' },
-    { id: 2, name: 'Bob Johnson', email: 'bob@example.com', role: 'ORGANIZER', status: 'Active' },
-    { id: 3, name: 'Carol Williams', email: 'carol@example.com', role: 'USER', status: 'Active' },
-    { id: 4, name: 'Dave Brown', email: 'dave@example.com', role: 'USER', status: 'Pending' },
-  ];
+  // Load live data from backend
+  useEffect(() => {
+    async function loadAdminData() {
+      setIsLoading(true);
+      try {
+        const userList = await UserAPI.listUsers();
+        setUsers(userList);
+        const logList = await UserAPI.getAuditLogs();
+        setLogs(logList);
+      } catch (err) {
+        console.error('Failed to load admin data:', err);
+        toast.error('Failed to load system admin data');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadAdminData();
+  }, []);
 
-  const mockLogs = [
-    { time: '10:32 AM', action: 'LOGIN_SUCCESS', details: 'User alice@example.com logged in' },
-    { time: '09:15 AM', action: 'INVITATION_PUBLISH', details: 'Invitation "Summer Gala" published by bob@example.com' },
-    { time: '08:45 AM', action: 'USER_REGISTER', details: 'New account created for Dave Brown' },
-    { time: 'Yesterday', action: 'SYSTEM_BACKUP', details: 'Automated database backup completed' },
-  ];
+  const handleToggleStatus = async (userId: number, currentStatus: string) => {
+    const nextStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    try {
+      await UserAPI.changeUserStatus(userId, nextStatus);
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, accountStatus: nextStatus } : u));
+      toast.success(`User status changed to ${nextStatus}`);
+    } catch (err) {
+      console.error('Failed to update user status:', err);
+      toast.error('Failed to update user status');
+    }
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    if (confirm('Are you sure you want to suspend/delete this user?')) {
+      try {
+        await UserAPI.changeUserStatus(userId, 'DELETED');
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, accountStatus: 'DELETED' } : u));
+        toast.success('User account marked as DELETED');
+      } catch (err) {
+        console.error('Failed to delete user:', err);
+        toast.error('Failed to delete user');
+      }
+    }
+  };
+
+  const handleExportLogsCSV = () => {
+    try {
+      const headers = ['Timestamp', 'Action Type', 'Details', 'User ID'];
+      const csvRows = [headers.join(',')];
+      for (const log of logs) {
+        const row = [
+          JSON.stringify(new Date(log.timestamp).toLocaleString()),
+          JSON.stringify(log.actionType || ''),
+          JSON.stringify(log.details || ''),
+          JSON.stringify(log.userId || '')
+        ];
+        csvRows.push(row.join(','));
+      }
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('System action logs exported successfully.');
+    } catch (error) {
+      console.error('Failed to export responses:', error);
+      toast.error('Failed to export responses');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-background text-foreground">
@@ -88,7 +154,7 @@ export default function AdminPage() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Total Users</p>
-              <h3 className="text-2xl font-bold font-mono">1,248</h3>
+              <h3 className="text-2xl font-bold font-mono">{isLoading ? '...' : users.length}</h3>
             </div>
           </Card>
 
@@ -97,8 +163,8 @@ export default function AdminPage() {
               <Calendar className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Invitations</p>
-              <h3 className="text-2xl font-bold font-mono">482</h3>
+              <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">System Action Logs</p>
+              <h3 className="text-2xl font-bold font-mono">{isLoading ? '...' : logs.length}</h3>
             </div>
           </Card>
 
@@ -153,11 +219,14 @@ export default function AdminPage() {
 
         {/* Tab Contents */}
         <div className="min-h-[300px]">
-          {activeTab === 'users' && (
-            <Card className="border border-border/50 bg-background/40 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm">
+          {isLoading ? (
+            <Card className="p-12 text-center border-secondary/20">
+              <p className="text-muted-foreground">Loading admin resources...</p>
+            </Card>
+          ) : activeTab === 'users' ? (
+            <Card className="border border-border/50 bg-background/40 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm animate-in fade-in duration-300">
               <div className="p-6 border-b border-border/40 flex items-center justify-between">
                 <h3 className="font-serif text-lg font-bold">Registered Accounts</h3>
-                <Button size="sm" className="rounded-full">Add Administrator</Button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left text-sm">
@@ -171,9 +240,9 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
-                    {mockUsers.map((u) => (
+                    {users.map((u) => (
                       <tr key={u.id} className="hover:bg-secondary/10 transition-colors">
-                        <td className="p-4 font-medium">{u.name}</td>
+                        <td className="p-4 font-medium">{u.name || `${u.firstName || ''} ${u.lastName || ''}`}</td>
                         <td className="p-4 text-muted-foreground">{u.email}</td>
                         <td className="p-4">
                           <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ring-1 ring-inset ${
@@ -188,16 +257,28 @@ export default function AdminPage() {
                         </td>
                         <td className="p-4">
                           <span className="flex items-center gap-1.5 text-xs text-foreground font-medium">
-                            <span className={`h-1.5 w-1.5 rounded-full ${u.status === 'Active' ? 'bg-green-500' : 'bg-amber-500'}`} />
-                            {u.status}
+                            <span className={`h-1.5 w-1.5 rounded-full ${u.accountStatus === 'ACTIVE' ? 'bg-green-500' : 'bg-amber-500'}`} />
+                            {u.accountStatus}
                           </span>
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                              <UserCheck className="h-4 w-4" />
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleToggleStatus(u.id, u.accountStatus)}
+                              title="Toggle Active/Suspended Status"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            >
+                              {u.accountStatus === 'ACTIVE' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleDeleteUser(u.id)}
+                              title="Suspend and delete user account"
+                              className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -208,24 +289,22 @@ export default function AdminPage() {
                 </table>
               </div>
             </Card>
-          )}
-
-          {activeTab === 'logs' && (
-            <Card className="border border-border/50 bg-background/40 backdrop-blur-md rounded-2xl p-6 shadow-sm space-y-4">
+          ) : activeTab === 'logs' ? (
+            <Card className="border border-border/50 bg-background/40 backdrop-blur-md rounded-2xl p-6 shadow-sm space-y-4 animate-in fade-in duration-300">
               <div className="flex items-center justify-between">
                 <h3 className="font-serif text-lg font-bold">System Action Logs</h3>
-                <Button variant="outline" size="sm" className="rounded-full">Export CSV</Button>
+                <Button variant="outline" size="sm" onClick={handleExportLogsCSV} className="rounded-full">Export CSV</Button>
               </div>
-              <div className="space-y-4">
-                {mockLogs.map((log, index) => (
-                  <div key={index} className="flex gap-4 p-4 rounded-xl bg-secondary/20 border border-border/20 items-start">
+              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                {logs.map((log, index) => (
+                  <div key={log.id || index} className="flex gap-4 p-4 rounded-xl bg-secondary/20 border border-border/20 items-start">
                     <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary mt-0.5 shrink-0">
                       <FileText className="h-4 w-4" />
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-muted-foreground">{log.time}</span>
-                        <span className="text-xs font-mono uppercase bg-background px-1.5 py-0.5 rounded border border-border/40">{log.action}</span>
+                        <span className="text-xs font-semibold text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</span>
+                        <span className="text-xs font-mono uppercase bg-background px-1.5 py-0.5 rounded border border-border/40">{log.actionType}</span>
                       </div>
                       <p className="text-sm text-foreground">{log.details}</p>
                     </div>
@@ -233,10 +312,8 @@ export default function AdminPage() {
                 ))}
               </div>
             </Card>
-          )}
-
-          {activeTab === 'settings' && (
-            <Card className="border border-border/50 bg-background/40 backdrop-blur-md rounded-2xl p-6 shadow-sm space-y-6">
+          ) : (
+            <Card className="border border-border/50 bg-background/40 backdrop-blur-md rounded-2xl p-6 shadow-sm space-y-6 animate-in fade-in duration-300">
               <h3 className="font-serif text-lg font-bold">Global Application Settings</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 rounded-xl border border-border/30 bg-background/50">
