@@ -14,7 +14,7 @@ export interface Guest {
 export function useInvitationGuests(invitationId: string | number) {
   return useQuery<Guest[]>({
     queryKey: ['invitation', invitationId, 'guests'],
-    queryFn: () => api.get<Guest[]>(`/invitations/${invitationId}/guests`),
+    queryFn: () => api.get<Guest[]>(`/guests/${invitationId}`),
     enabled: !!invitationId,
   });
 }
